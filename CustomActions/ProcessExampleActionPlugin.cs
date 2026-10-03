@@ -33,8 +33,11 @@ namespace DataverseServerSideExamples.CustomActions
                     throw new InvalidPluginExecutionException("InputValue is required.");
                 }
 
-                // This transformation needs no data operation, so no IOrganizationService is created.
-                context.OutputParameters["ResultMessage"] = "The request was processed successfully.";
+                var normalizedInput = inputValue.Trim();
+                context.OutputParameters["ResultMessage"] = string.Format(
+                    "Record {0:D}: {1}",
+                    recordId,
+                    normalizedInput);
                 context.OutputParameters["Success"] = true;
                 tracing.Trace("ProcessExampleActionPlugin completed for correlation {0}.", context.CorrelationId);
             }

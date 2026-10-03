@@ -1,15 +1,17 @@
 using System;
 using System.Activities;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Workflow;
 
 namespace DataverseServerSideExamples.CustomWorkflowActivities
 {
     public sealed class CalculateExampleActivity : CodeActivity
     {
-        [Input("Input Amount")]
+        [Input("Example Record")]
         [RequiredArgument]
-        public InArgument<decimal> InputAmount { get; set; }
+        [ReferenceTarget("new_examplerecord")]
+        public InArgument<EntityReference> ExampleRecord { get; set; }
 
         [Input("Multiplier")]
         [Default("1")]
@@ -25,12 +27,22 @@ namespace DataverseServerSideExamples.CustomWorkflowActivities
             var serviceFactory = executionContext.GetExtension<IOrganizationServiceFactory>();
             IOrganizationService service = serviceFactory.CreateOrganizationService(workflowContext.UserId);
 
-            var result = InputAmount.Get(executionContext) * Multiplier.Get(executionContext);
+            var recordReference = ExampleRecord.Get(executionContext);
+            if (recordReference == null || recordReference.Id == Guid.Empty ||
+                recordReference.LogicalName != "new_examplerecord")
+            {
+                throw new InvalidPluginExecutionException("Please select a valid example record.");
+            }
+
+            var record = service.Retrieve(
+                recordReference.LogicalName,
+                recordReference.Id,
+                new ColumnSet("new_totalamount"));
+            var totalAmount = record.GetAttributeValue<Money>("new_totalamount")?.Value ?? 0m;
+            var result = totalAmount * Multiplier.Get(executionContext);
             CalculatedAmount.Set(executionContext, result);
 
-            // The service shows the supported access pattern; this calculation needs no data operation.
             tracing.Trace("CalculateExampleActivity completed for workflow correlation {0}.", workflowContext.CorrelationId);
-            GC.KeepAlive(service);
         }
     }
 }

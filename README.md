@@ -64,11 +64,11 @@ The table is a design reference, not an importable registration file. Register t
 
 ### Custom Workflow Activity
 
-`CalculateExampleActivity` uses `CodeActivityContext` to access `IWorkflowContext`, tracing, the service factory, and an organization service. Its `InArgument<decimal>` values produce an `OutArgument<decimal>` result. The calculation needs no record access; service creation is present solely to show the standard access pattern.
+`CalculateExampleActivity` accepts an `EntityReference` to `new_examplerecord` and a decimal multiplier. It uses the workflow context and service factory to retrieve only `new_totalamount`, applies the multiplier, and returns the result through an `OutArgument<decimal>`.
 
 ### Custom Action
 
-`ProcessExampleActionPlugin` checks the placeholder message `new_ProcessExample`, validates `RecordId` and `InputValue`, and returns `ResultMessage` and `Success`. Replace the placeholder message only with a generic schema name created in the target solution. Expected validation errors stay friendly; unexpected technical details go to tracing rather than the user.
+`ProcessExampleActionPlugin` checks the placeholder message `new_ProcessExample`, validates `RecordId` and `InputValue`, trims the supplied value, and uses both inputs to build `ResultMessage` before setting `Success`. The transformation requires no data access, so it does not create an organization service. Replace the placeholder message only with a generic schema name created in the target solution. Expected validation errors stay friendly; unexpected technical details go to tracing rather than the user.
 
 ### QueryExpression
 
