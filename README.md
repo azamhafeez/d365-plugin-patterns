@@ -1,0 +1,1 @@
+# azamhafeez-d365-plugin-patterns
